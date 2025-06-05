@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Quiz Secreto do Mateus</title>
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Comic Neue', cursive;
+      background: linear-gradient(135deg, #fbd3e9, #bb377d);
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    #quiz-container {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.2);
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+      animation: fadeIn 0.5s ease-in;
+    }
+    h2 {
+      margin-bottom: 20px;
+    }
+    .option {
+      background: #ff69b4;
+      color: white;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.2s, background 0.3s;
+    }
+    .option:hover {
+      background: #ff1493;
+      transform: scale(1.05);
+    }
+    .option:active {
+      transform: scale(0.95);
+    }
+    #progress {
+      margin-bottom: 15px;
+      font-weight: bold;
+      color: #555;
+    }
+    #pix-message {
+      font-size: 20px;
+      color: green;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    #pix-key {
+      font-family: monospace;
+      background: #eee;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      word-break: break-all;
+    }
+    .copy-btn {
+      padding: 8px 15px;
+      background: #444;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .copy-btn:hover {
+      background: #222;
+    }
+    .timer {
+      margin-top: 15px;
+      font-size: 16px;
+      color: #555;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="quiz-container">
+  <div id="progress"></div>
+  <h2 id="question">Carregando...</h2>
+  <div id="options"></div>
+</div>
+
+<script>
+  const quizData = [
+    {
+      question: "Onde você conheceu o Mateus?",
+      options: ["Na escola", "No forró", "Na igreja", "Na Lan"]
+    },
+    {
+      question: "Vocês dançaram quadrilha juntos?",
+      options: ["Sim", "Talvez"]
+    },
+    {
+      question: "Vocês eram amigos?",
+      options: ["Sim", "Não sei"]
+    },
+    {
+      question: "Vocês deram um selinho?",
+      options: ["Sim 😘", "Com certeza 😏"]
+    },
+    {
+      question: "Quem deu o primeiro selinho?",
+      options: ["Mateus", "Ester"]
+    }
+  ];
+
+  const pixKey = atob("bWF0ZXVzQGVtYWlsLmNvbQ==");
+  let currentQuestion = 0;
+
+  const questionEl = document.getElementById("question");
+  const optionsEl = document.getElementById("options");
+  const progressEl = document.getElementById("progress");
+
+  function showQuestion() {
+    if (currentQuestion >= quizData.length) return;
+
+    const isLast = currentQuestion === quizData.length - 1;
+    const q = quizData[currentQuestion];
+    questionEl.textContent = q.question;
+    progressEl.textContent = `Pergunta ${currentQuestion + 1} de ${quizData.length}`;
+    optionsEl.innerHTML = "";
+
+    q.options.forEach(option => {
+      const btn = document.createElement("div");
+      btn.className = "option";
+      btn.textContent = option;
+      btn.onclick = () => {
+        if (isLast) {
+          optionsEl.innerHTML = `<div class="timer">Verificando resposta...</div>`;
+          setTimeout(() => {
+            if (option === "Mateus") {
+              showPixTroll();
+            } else {
+              showPixPrize();
+            }
+          }, 3000);
+        } else {
+          currentQuestion++;
+          showQuestion();
+        }
+      };
+      optionsEl.appendChild(btn);
+    });
+  }
+
+  function showPixTroll() {
+    questionEl.textContent = "Resultado Final";
+    progressEl.textContent = "";
+    optionsEl.innerHTML = `
+      <div id="pix-message">ERROU! Agora o mínimo é um PIX pro Mateus 😂 E claro… contratar esse talento!</div>
+      <div id="pix-key">${pixKey}</div>
+      <button class="copy-btn" onclick="copyPixKey()">Copiar chave PIX</button>
+    `;
+  }
+
+  function showPixPrize() {
+    questionEl.textContent = "Resultado Final";
+    progressEl.textContent = "";
+    confettiEffect();
+    optionsEl.innerHTML = `
+      <div id="pix-message">Parabéns! Você acertou! O Mateus vai te mandar um PIX! 💸</div>
+      <div id="pix-key">Aguardando transferência...</div>
+    `;
+  }
+
+  function copyPixKey() {
+    navigator.clipboard.writeText(pixKey).then(() => {
+      alert("Chave PIX copiada!");
+    });
+  }
+
+  function confettiEffect() {
+    const duration = 3 * 1000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 2000 };
+
+    const interval = setInterval(() => {
+      const timeLeft = animationEnd - Date.now();
+      if (timeLeft <= 0) {
+        return clearInterval(interval);
+      }
+      const particleCount = 50 * (timeLeft / duration);
+      confetti(Object.assign({}, defaults, { particleCount, origin: { x: Math.random(), y: Math.random() - 0.2 } }));
+    }, 250);
+  }
+
+  showQuestion();
+</script>
+
+</body>
+</html>
